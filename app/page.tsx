@@ -2,11 +2,10 @@
 
 import { useEffect, useState } from "react";
 import type { CSSProperties } from "react";
-import Image from "next/image";
 import Link from "next/link";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/client";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
-import { SiteMenu } from "@/components/site-menu";
 
 type Job = {
   id: string;
@@ -131,31 +130,62 @@ export default function Home() {
   }, []);
 
   useEffect(() => {
-    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const goals = document.querySelector<HTMLElement>("#goal-videos");
+    if (!goals) return;
 
-    const frames = Array.from(document.querySelectorAll<HTMLElement>("[data-parallax]"));
+    const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     let frame = 0;
-    const updateParallax = () => {
+    const paintOnScroll = () => {
+      if (reducedMotion) {
+        goals.style.setProperty("--paint-progress", "1");
+        return;
+      }
       if (frame) return;
       frame = window.requestAnimationFrame(() => {
         frame = 0;
-        const viewportCenter = window.innerHeight / 2;
-        frames.forEach((item) => {
-          const bounds = item.getBoundingClientRect();
-          const distance = bounds.top + bounds.height / 2 - viewportCenter;
-          const strength = Number(item.dataset.parallax) || 0.035;
-          const offset = Math.max(-22, Math.min(22, distance * strength));
-          item.style.setProperty("--parallax-y", `${offset.toFixed(1)}px`);
-        });
+        const bounds = goals.getBoundingClientRect();
+        const start = window.innerHeight * 0.72;
+        const end = -bounds.height * 0.18;
+        const progress = Math.max(0, Math.min(1, (start - bounds.top) / (start - end)));
+        goals.style.setProperty("--paint-progress", progress.toFixed(3));
       });
     };
 
-    updateParallax();
-    window.addEventListener("scroll", updateParallax, { passive: true });
-    window.addEventListener("resize", updateParallax);
+    paintOnScroll();
+    window.addEventListener("scroll", paintOnScroll, { passive: true });
+    window.addEventListener("resize", paintOnScroll);
     return () => {
-      window.removeEventListener("scroll", updateParallax);
-      window.removeEventListener("resize", updateParallax);
+      window.removeEventListener("scroll", paintOnScroll);
+      window.removeEventListener("resize", paintOnScroll);
+      if (frame) window.cancelAnimationFrame(frame);
+    };
+  }, []);
+
+  useEffect(() => {
+    const header = document.querySelector<HTMLElement>(".hero-header");
+    const sections = Array.from(document.querySelectorAll<HTMLElement>(".hero, #goal-videos, #how-it-works, #jobs, #teaching-matters, #payment, #faq, .site-footer-final"));
+    if (!header || sections.length === 0) return;
+
+    let frame = 0;
+    const updateHeaderTheme = () => {
+      if (frame) return;
+      frame = window.requestAnimationFrame(() => {
+        frame = 0;
+        const marker = Math.min(120, window.innerHeight * 0.18);
+        const current = sections.find((section) => {
+          const bounds = section.getBoundingClientRect();
+          return bounds.top <= marker && bounds.bottom > marker;
+        }) ?? sections[0];
+        header.dataset.theme = current.id || (current.classList.contains("site-footer-final") ? "footer" : "hero");
+      });
+    };
+
+    updateHeaderTheme();
+    window.addEventListener("scroll", updateHeaderTheme, { passive: true });
+    window.addEventListener("resize", updateHeaderTheme);
+    return () => {
+      window.removeEventListener("scroll", updateHeaderTheme);
+      window.removeEventListener("resize", updateHeaderTheme);
       if (frame) window.cancelAnimationFrame(frame);
     };
   }, []);
@@ -186,38 +216,42 @@ export default function Home() {
   return (
     <>
       <div className="home-page-content">
-      <header className="site-header">
-        <Link className="brand" href="/" aria-label="TeachMatch home"><span className="header-wordmark">TeachMatch</span></Link>
-        <SiteMenu />
-      </header>
-
       <main id="top">
         <section className="hero">
           <video className="section-background-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-            <source src="/teachmatch-background.mp4" type="video/mp4" />
+            <source src="/hero-section.mp4" type="video/mp4" />
           </video>
           <div className="section-video-overlay" aria-hidden="true"></div>
+          <header className="site-header hero-header" data-theme="hero">
+            <Link className="brand site-logo-link" href="/" aria-label="TeachMatchs home"><Image className="site-logo-image" src="/teachmatchs-logo.png" alt="TeachMatchs" width={2206} height={386} priority /></Link>
+            <nav className="hero-nav" aria-label="Main navigation">
+              <Link className="is-active" href="#top" aria-current="page">Home</Link>
+              <Link href="/jobs">Find jobs</Link>
+              <Link href="#payment">For schools</Link>
+              <Link className="hero-nav-cta" href="/register">Start for free <span aria-hidden="true">→</span></Link>
+            </nav>
+            <details className="hero-mobile-menu">
+              <summary aria-label="Open navigation"><span></span><span></span><span></span></summary>
+              <nav aria-label="Mobile navigation">
+                <Link href="#top">Home</Link><Link href="/jobs">Find jobs</Link><Link href="#payment">For schools</Link><Link href="/register">Start for free</Link>
+              </nav>
+            </details>
+          </header>
           <div className="hero-copy">
-            <p className="eyebrow" data-reveal="fade-up">For teachers ready for what&apos;s next</p>
-            <h1 aria-label="Your next classroom is waiting. Take the first step today."><AnimatedWords text="Your next classroom is waiting. Take the first step today." /></h1>
-            <p className="hero-intro" data-reveal="fade-up">Build one profile, apply to jobs, send your CV and meet on video, all in one place.</p>
+            <h1>Your next classroom is waiting.</h1>
+            <p className="hero-intro" data-reveal="fade-up">Find verified schools. Apply in one tap. Meet on video.</p>
             <div className="hero-actions" data-reveal="fade-up">
               <Link className="button button-dark" href="/register?type=teacher">Start for free <span aria-hidden="true">→</span></Link>
-              <Link className="button hero-waitlist-button" href="/register?type=teacher&source=waitlist">Join waitlist</Link>
             </div>
           </div>
         </section>
 
         <section className="goals-section" id="goal-videos">
-          <video className="section-background-video" autoPlay muted loop playsInline preload="metadata" aria-hidden="true">
-            <source src="/life-goals-background.mp4" type="video/mp4" />
-          </video>
-          <div className="section-video-overlay goals-video-overlay" aria-hidden="true"></div>
           <div className="goals-content goals-content-simple">
-            <p className="eyebrow" data-reveal="fade-up">A future built one step at a time</p>
-            <h2 aria-label="Build the life you want, one goal at a time."><AnimatedWords text="Build the life you want, one goal at a time." /></h2>
-            <p className="goals-intro" data-reveal="fade-up">Choose a goal, find your next step, and build a teaching career that fits the life you want.</p>
-            <Link className="button button-dark" data-reveal="fade-up" href="/register?type=teacher">Register for free <span aria-hidden="true">→</span></Link>
+            <p className="eyebrow">A future built one step at a time</p>
+            <h2>Build the life you want, one goal at a time.</h2>
+            <p className="goals-intro">Choose a goal, find your next step, and build a teaching career that fits the life you want.</p>
+            <Link className="button button-dark" href="/register?type=teacher">Register now and get hired <span aria-hidden="true">→</span></Link>
           </div>
         </section>
 
@@ -249,10 +283,6 @@ export default function Home() {
               </ol>
               <button className="text-action" type="button" onClick={() => setActiveStep((step) => Math.min(step + 1, journeySteps.length))} disabled={activeStep === journeySteps.length}>Next step <span aria-hidden="true">→</span></button>
             </div>
-            <figure className="section-photo how-photo" data-reveal="photo-right" data-parallax="0.045">
-              <Image src="/images/how-it-works.jpg" alt="TeachMatch shown on a phone" fill sizes="(max-width: 760px) 100vw, 42vw" style={{ objectFit: "cover" }} />
-              <figcaption>A clear path from profile to first interview.</figcaption>
-            </figure>
           </div>
         </section>
 
@@ -269,22 +299,13 @@ export default function Home() {
                 <article data-reveal="card"><span>03</span><div><h3>Verified schools</h3><p>Filter your search to see schools that have been checked.</p></div></article>
                 <article data-reveal="card"><span>04</span><div><h3>Video interviews</h3><p>Meet schools from home, right inside TeachMatch.</p></div></article>
               </div>
-              <div className="hiring-visuals">
-                <figure className="section-photo hiring-photo" data-reveal="photo-zoom" data-parallax="0.04">
-                  <Image src="/images/getting-hired.jpg" alt="A teacher speaking with a school representative" fill sizes="(max-width: 760px) 100vw, 40vw" style={{ objectFit: "cover" }} />
-                </figure>
-                <figure className="section-photo video-meeting-photo" data-reveal="photo-left" data-parallax="0.055">
-                  <Image src="/images/video-meetings.jpg" alt="A teacher in a video meeting on a phone" fill sizes="180px" style={{ objectFit: "cover" }} />
-                  <figcaption>Meet from wherever you are.</figcaption>
-                </figure>
-                <article className="sample-job-card" data-reveal="card">
-                  <div className="sample-job-heading"><span>Sample role</span><span className="sample-verified">Verified school</span></div>
-                  <h3>{featuredJob?.title ?? "Primary Mathematics Teacher"}</h3>
-                  <p>{featuredJob ? `${featuredJob.school} · ${featuredJob.location}` : "Example school · Lagos, Nigeria"}</p>
-                  <div className="sample-job-tags"><span>{featuredJob?.tags[0] ?? "Primary"}</span><span>{featuredJob?.tags[1] ?? "Full time"}</span></div>
-                  <div className="sample-job-bottom"><span>{featuredJob?.salary ?? "Salary discussed"}</span><Link href={featuredJob ? `/jobs/${featuredJob.id}` : "/jobs"}>View role <span aria-hidden="true">→</span></Link></div>
-                </article>
-              </div>
+              <article className="sample-job-card" data-reveal="card">
+                <div className="sample-job-heading"><span>Sample role</span><span className="sample-verified">Verified school</span></div>
+                <h3>{featuredJob?.title ?? "Primary Mathematics Teacher"}</h3>
+                <p>{featuredJob ? `${featuredJob.school} · ${featuredJob.location}` : "Example school · Lagos, Nigeria"}</p>
+                <div className="sample-job-tags"><span>{featuredJob?.tags[0] ?? "Primary"}</span><span>{featuredJob?.tags[1] ?? "Full time"}</span></div>
+                <div className="sample-job-bottom"><span>{featuredJob?.salary ?? "Salary discussed"}</span><Link href={featuredJob ? `/jobs/${featuredJob.id}` : "/jobs"}>View role <span aria-hidden="true">→</span></Link></div>
+              </article>
             </div>
             <div className="next-steps-line" data-reveal="line"><strong>What happens next</strong><span>Apply</span><i>→</i><span>The school reviews</span><i>→</i><span>Interview</span><i>→</i><span>Offer</span></div>
             <div className="section-actions" data-reveal="fade-up"><Link className="button button-dark" href="/jobs">See open jobs</Link><Link className="button button-light" href="/register?type=teacher&source=job-alerts">Set up job alerts</Link></div>
@@ -300,9 +321,6 @@ export default function Home() {
               <article data-reveal="card"><span>03</span><div><h3>Education opens doors</h3><p>Strong foundations give students more choices as they grow. Teachers help turn curiosity into skills they can carry for life.</p></div></article>
               <article data-reveal="card"><span>04</span><div><h3>The right match helps every student</h3><p>Teachers do their best work where their strengths are valued. Finding the right school helps students and teachers move forward together.</p></div></article>
             </div>
-            <figure className="section-photo education-photo" data-reveal="photo-left" data-parallax="0.04">
-              <Image src="/images/teaching-matters.jpg" alt="A teacher planning a lesson at a classroom board" fill sizes="(max-width: 760px) 100vw, 44vw" style={{ objectFit: "cover" }} />
-            </figure>
           </div>
           <div className="education-closing" data-reveal="fade-up"><p>Help a school find you, or help a student find their teacher.</p><Link className="button button-dark" href="/register">Register for free <span aria-hidden="true">→</span></Link></div>
         </section>
@@ -318,7 +336,6 @@ export default function Home() {
               <p className="future-price">Future plan placeholder: <strong>[YOUR PRICE]</strong></p>
               <p className="salary-confirm">[CONFIRM: salaries are agreed directly between school and teacher]</p>
             </div>
-            <figure className="section-photo payment-photo" data-reveal="photo-zoom" data-parallax="0.035"><Image src="/images/payment.jpg" alt="An hourglass representing time and planning for the future" fill sizes="(max-width: 760px) 100vw, 34vw" style={{ objectFit: "cover", objectPosition: "center 58%" }} /></figure>
           </div>
         </section>
 
@@ -332,7 +349,7 @@ export default function Home() {
         </section>
       </main>
 
-      <footer className="site-footer site-footer-final" id="sign-in" data-reveal="fade-up"><div><Link className="brand footer-brand" href="/" aria-label="TeachMatch home"><span>TeachMatch</span></Link><p>Where teachers meet the schools that need them.</p></div><nav aria-label="Footer navigation"><Link href="/jobs">Find jobs</Link><Link href="/register?type=school">For schools</Link><Link href="#how-it-works">How it works</Link><Link href="#faq">FAQs</Link><Link href="/login">Log in</Link></nav><span className="copyright">© 2026 TeachMatch · Made for Nigeria</span></footer>
+      <footer className="site-footer site-footer-final" id="sign-in" data-reveal="fade-up"><div><Link className="brand footer-brand site-logo-link" href="/" aria-label="TeachMatchs home"><Image className="site-logo-image" src="/teachmatchs-logo.png" alt="TeachMatchs" width={2206} height={386} /></Link><p>Where teachers meet the schools that need them.</p></div><nav aria-label="Footer navigation"><Link href="/jobs">Find jobs</Link><Link href="/register?type=school">For schools</Link><Link href="#how-it-works">How it works</Link><Link href="#faq">FAQs</Link><Link href="/login">Log in</Link></nav><span className="copyright">© 2026 TeachMatchs · Made for Nigeria</span></footer>
       </div>
     </>
   );
