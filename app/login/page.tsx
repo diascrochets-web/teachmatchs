@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { useActionState } from "react";
 import { signIn, type LoginState } from "@/app/login/actions";
 
@@ -13,8 +14,7 @@ export default function LoginPage() {
     <main className="auth-shell auth-login-shell">
       <section className="auth-panel auth-login-panel">
         <Link className="brand auth-brand" href="/" aria-label="TeachMatchs home">
-          <span className="brand-mark" aria-hidden="true"></span>
-          <span>Teach<span className="brand-accent">Matchs</span></span>
+          <BrandWordmark />
         </Link>
         <p className="eyebrow">Welcome back</p>
         <h1 className="auth-title">Good to have<br />you back.</h1>

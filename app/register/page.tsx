@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { useActionState, useEffect, useState } from "react";
 import { registerAccount, type RegistrationState } from "@/app/register/actions";
 
@@ -26,8 +27,7 @@ export default function RegisterPage() {
     <main className="auth-shell">
       <section className="auth-panel">
         <Link className="brand auth-brand" href="/" aria-label="TeachMatchs home">
-          <span className="brand-mark" aria-hidden="true"></span>
-          <span>Teach<span className="brand-accent">Matchs</span></span>
+          <BrandWordmark />
         </Link>
         <p className="eyebrow">Join Nigeria&apos;s teaching community</p>
         <h1 className="auth-title">Let&apos;s find your<br />right match.</h1>
@@ -72,7 +72,7 @@ export default function RegisterPage() {
           {state.error && <p className="form-message form-error" role="alert">{state.error}</p>}
           {state.success && <p className="form-message form-success" role="status">{state.success}</p>}
           <button className="button button-primary auth-submit" type="submit" disabled={pending}>{pending ? "Creating your account…" : "Create my account"}<span aria-hidden="true">→</span></button>
-          <p className="form-terms">By joining, you agree to our <a href="#terms">Terms</a> and <a href="#privacy">Privacy Policy</a>.</p>
+          <p className="form-terms">By joining, you agree to our <a href="/terms">Terms</a> and <a href="/privacy-center">Privacy Policy</a>.</p>
         </form>
 
         <p className="auth-switch">Already have an account? <Link href="/login">Log in</Link></p>

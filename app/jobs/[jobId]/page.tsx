@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { applyForJob } from "@/app/jobs/actions";
+import { removeSavedJob, saveJob } from "@/app/dashboard/actions";
 import { SiteHeader } from "@/components/site-header";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -50,9 +51,16 @@ export default async function JobDetailPage({
   const job = data as unknown as JobDetail;
   const school = Array.isArray(job.school_profiles) ? job.school_profiles[0] : job.school_profiles;
   const userId = claims?.claims?.sub;
-  const { data: profile } = userId
-    ? await supabase.from("profiles").select("role").eq("id", userId).maybeSingle()
-    : { data: null };
+  const [profileResult, savedResult, resumeResult] = userId
+    ? await Promise.all([
+        supabase.from("profiles").select("role").eq("id", userId).maybeSingle(),
+        supabase.from("saved_jobs").select("job_id").eq("teacher_id", userId).eq("job_id", jobId).maybeSingle(),
+        supabase.from("teacher_resumes").select("original_filename").eq("teacher_id", userId).maybeSingle(),
+      ])
+    : [{ data: null }, { data: null }, { data: null }];
+  const profile = profileResult.data;
+  const savedJob = savedResult.data;
+  const resume = resumeResult.data;
   const isTeacher = profile?.role === "teacher";
   const isSignedIn = Boolean(userId);
   const errorMessage = query.error === "duplicate"
@@ -83,13 +91,14 @@ export default async function JobDetailPage({
           <p className="eyebrow">Your next step</p>
           <h2>Interested in this role?</h2>
           <p className="apply-intro">Send a short note to the school. Your application will be attached to your teacher account.</p>
+          {isTeacher && <form action={savedJob ? removeSavedJob : saveJob} className="save-job-form"><input type="hidden" name="job_id" value={job.id} /><button className="button button-secondary" type="submit">{savedJob ? "Remove saved job" : "Save job"}</button></form>}
           {query.applied ? <p className="form-success" role="status">Your application has been sent to {school?.school_name ?? "the school"}.</p> : errorMessage ? <p className="form-error" role="alert">{errorMessage}</p> : null}
           {isTeacher && !query.applied ? (
             <form action={applyForJob} className="job-form apply-form">
               <input type="hidden" name="job_id" value={job.id} />
               <div className="form-field"><label htmlFor="cover_note">A note to the school <span>(optional)</span></label><textarea id="cover_note" name="cover_note" maxLength={2000} rows={5} placeholder="Share why this role feels like a good fit." /></div>
               <button className="button button-primary job-submit" type="submit">Apply for this role</button>
-              <p className="apply-help">Your note will be sent through TeachMatchs.</p>
+              <p className="apply-help">{resume?.original_filename ? `Your CV (${resume.original_filename}) will be available only to this school.` : <>Your application is sent to the school. <Link href="/dashboard/profile">Upload a CV</Link> so it is ready for their review.</>}</p>
             </form>
           ) : !isSignedIn ? (
             <div><p>Sign in as a teacher to send your application directly to the school.</p><Link className="button button-primary job-submit" href="/login">Log in to apply</Link><p className="apply-signup">New to TeachMatchs? <Link href="/register?type=teacher">Create a teacher account</Link></p></div>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand-wordmark";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/env";
@@ -32,7 +33,7 @@ export default async function SchoolJobsPage({
   return (
     <main className="dashboard-shell">
       <header className="dashboard-header">
-        <Link className="brand" href="/"><span className="brand-mark" aria-hidden="true"></span><span>Teach<span className="brand-accent">Matchs</span></span></Link>
+        <Link className="brand" href="/" aria-label="TeachMatchs home"><BrandWordmark /></Link>
         <nav className="dashboard-nav"><Link href="/dashboard">Dashboard</Link></nav>
       </header>
       <section className="job-editor job-listing-page">

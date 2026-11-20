@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { BrandWordmark } from "@/components/brand-wordmark";
 
 export const metadata: Metadata = {
   title: "TeachMatchs — Coming soon",
@@ -11,8 +12,7 @@ export default function UnderConstructionPage() {
     <main className="construction-page">
       <header className="construction-header">
         <Link className="brand" href="/" aria-label="TeachMatchs home">
-          <span className="brand-mark" aria-hidden="true"></span>
-          <span>Teach<span className="brand-accent">Matchs</span></span>
+          <BrandWordmark />
         </Link>
         <span className="construction-status" role="status"><span aria-hidden="true"></span>Website under construction</span>
       </header>
@@ -25,11 +25,11 @@ export default function UnderConstructionPage() {
         </div>
         <div className="construction-art" aria-hidden="true">
           <div className="construction-orbit construction-orbit-one"></div><div className="construction-orbit construction-orbit-two"></div>
-          <div className="construction-card"><div className="construction-card-logo"><span className="brand-mark"></span></div><div className="construction-card-lines"><span></span><span></span></div><div className="construction-card-banner"></div><div className="construction-card-footer"><span></span><span></span><i></i></div></div>
+          <div className="construction-card"><div className="construction-card-logo"><BrandWordmark /></div><div className="construction-card-lines"><span></span><span></span></div><div className="construction-card-banner"></div><div className="construction-card-footer"><span></span><span></span><i></i></div></div>
           <span className="construction-spark construction-spark-one">✦</span><span className="construction-spark construction-spark-two">✳</span><div className="construction-note"><span>✦</span>A better way to meet</div>
         </div>
       </section>
-      <footer className="construction-footer"><span>Teach<span className="brand-accent">Matchs</span></span><span>Where teachers meet the schools that need them.</span><span>Made for Nigeria</span></footer>
+      <footer className="construction-footer"><BrandWordmark /><span>Where teachers meet the schools that need them.</span><span>Made for Nigeria</span></footer>
     </main>
   );
 }

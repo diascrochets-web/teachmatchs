@@ -116,6 +116,18 @@ export async function applyForJob(formData: FormData) {
   if (error?.code === "23505") redirect(`/jobs/${jobId}?error=duplicate`);
   if (error) redirect(`/jobs/${jobId}?error=apply`);
 
+  const [{ data: job }, { data: resume }] = await Promise.all([
+    supabase.from("jobs").select("school_id, title").eq("id", jobId).maybeSingle(),
+    supabase.from("teacher_resumes").select("teacher_id").eq("teacher_id", userId).maybeSingle(),
+  ]);
+  if (job) await supabase.from("user_notifications").insert({
+    user_id: job.school_id,
+    category: "application",
+    title: "New teaching application",
+    body: `${job.title} has a new applicant${resume ? " with a CV" : ""}.`,
+    href: "/dashboard/applications",
+  });
+
   revalidatePath(`/jobs/${jobId}`);
   revalidatePath("/dashboard");
   redirect(`/jobs/${jobId}?applied=1`);

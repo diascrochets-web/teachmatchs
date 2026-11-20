@@ -1,8 +1,10 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { BrandWordmark } from "@/components/brand-wordmark";
+import { recordActivity } from "@/lib/search-activity";
 
 type Job = {
   id: string;
@@ -53,6 +55,16 @@ export function JobSearchResults({ jobs, initialQuery, initialLocation, unavaila
   const [page, setPage] = useState(1);
   const pageSize = 5;
 
+  useEffect(() => {
+    if (initialQuery) void recordActivity("search", initialQuery);
+    if (initialLocation) void recordActivity("location", initialLocation);
+  }, [initialLocation, initialQuery]);
+
+  function trackJobClick(job: Job) {
+    void recordActivity("job", job.title);
+    void recordActivity("school", job.school);
+  }
+
   const filteredJobs = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
     const normalizedLocation = location.trim().toLowerCase();
@@ -100,7 +112,6 @@ export function JobSearchResults({ jobs, initialQuery, initialLocation, unavaila
             <label><span className="sr-only">State or city</span><input name="location" value={location} onChange={(event) => setLocation(event.target.value)} placeholder="State or city" /></label>
             <button className="button button-primary" type="submit">Search jobs</button>
           </form>
-          <div className="job-search-popular"><span>Popular:</span>{["Mathematics", "English", "Primary"].map((term) => <Link key={term} href={`/jobs?q=${encodeURIComponent(term)}`}>{term}</Link>)}</div>
         </div>
       </section>
 
@@ -121,14 +132,14 @@ export function JobSearchResults({ jobs, initialQuery, initialLocation, unavaila
           </div>
           {visibleJobs.length ? <div className="job-results-list">{visibleJobs.map((job) => <article className="job-result-card" key={job.id}>
             <div className="job-result-meta"><span className="job-result-school">{job.school}{job.verified && <span className="verified-label"> · Verified</span>}</span><span className="job-result-posted">{postedLabel(job.createdAt)}</span></div>
-            <h2><Link href={`/jobs/${job.id}`}>{job.title}</Link></h2>
+            <h2><Link href={`/jobs/${job.id}`} onClick={() => trackJobClick(job)}>{job.title}</Link></h2>
             <p className="job-result-details">{job.city}, {job.state} · {job.level === "both" ? "Primary & secondary" : job.level} · {job.employment.replace("-", " ")}</p>
-            <div className="job-result-bottom"><strong>{salaryLabel(job.salaryMin, job.salaryMax)}</strong><Link href={`/jobs/${job.id}`}>View details <span aria-hidden="true">→</span></Link></div>
+            <div className="job-result-bottom"><strong>{salaryLabel(job.salaryMin, job.salaryMax)}</strong><Link href={`/jobs/${job.id}`} onClick={() => trackJobClick(job)}>View details <span aria-hidden="true">→</span></Link></div>
           </article>)}</div> : <div className="job-results-empty"><h2>{unavailable ? "We couldn’t load open roles" : "No roles match those filters yet"}</h2><p>{unavailable ? "Please try again in a moment." : "Try another subject or location, or clear your filters to see more teaching jobs."}</p>{!unavailable && <button className="button button-primary" type="button" onClick={() => { setQuery(""); setLocation(""); clearFilters(); }}>Clear search and filters</button>}</div>}
           {pageCount > 1 && <nav className="job-pagination" aria-label="Job result pages"><button type="button" disabled={page === 1} onClick={() => setPage((current) => Math.max(1, current - 1))}>‹</button>{Array.from({ length: pageCount }, (_, index) => index + 1).slice(0, 5).map((number) => <button type="button" key={number} className={number === page ? "is-active" : ""} aria-current={number === page ? "page" : undefined} onClick={() => setPage(number)}>{number}</button>)}{pageCount > 5 && <span>…</span>}<button type="button" disabled={page === pageCount} onClick={() => setPage((current) => Math.min(pageCount, current + 1))}>Next ›</button></nav>}
         </div>
       </section>
-      <footer className="site-footer job-search-footer"><Link className="brand footer-brand" href="/"><span className="brand-mark" aria-hidden="true"></span><span>Teach<span className="brand-accent">Matchs</span></span></Link><p>Where teachers meet the schools that need them.</p><nav aria-label="Footer navigation"><Link href="/">About</Link><Link href="/register?type=school">For schools</Link><Link href="/login">Log in</Link></nav></footer>
+      <footer className="site-footer job-search-footer"><Link className="brand footer-brand" href="/" aria-label="TeachMatchs home"><BrandWordmark /></Link><p>Where teachers meet the schools that need them.</p><nav aria-label="Footer navigation"><Link href="/">Home</Link><Link href="/register?type=school">For schools</Link><Link href="/login">Log in</Link></nav></footer>
     </main>
   );
 }
