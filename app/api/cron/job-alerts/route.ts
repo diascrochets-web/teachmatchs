@@ -39,7 +39,10 @@ export async function POST(request: Request) {
     const recipient = profileById.get(alert.teacher_id);
     if (!recipient?.email) { skipped += 1; continue; }
     const intervalMs = alert.frequency === "daily" ? 86_400_000 : 7 * 86_400_000;
-    const cutoff = alert.last_sent_at ? new Date(alert.last_sent_at).getTime() : Date.now() - intervalMs;
+    const now = Date.now();
+    const lastSentAt = alert.last_sent_at ? new Date(alert.last_sent_at).getTime() : null;
+    if (lastSentAt !== null && now - lastSentAt < intervalMs) { skipped += 1; continue; }
+    const cutoff = lastSentAt ?? now - intervalMs;
     const terms = alert.keywords.toLowerCase().split(/\s+/).filter(Boolean);
     const place = alert.location.trim().toLowerCase();
     const matches = jobRows.filter((job) => new Date(job.created_at).getTime() > cutoff
