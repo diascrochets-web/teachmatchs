@@ -11,7 +11,8 @@ export async function proxy(request: NextRequest) {
   if (
     maintenanceMode &&
     pathname !== "/under-construction" &&
-    pathname !== "/api/cron/job-alerts"
+    pathname !== "/api/cron/job-alerts" &&
+    pathname !== "/api/waitlist"
   ) {
     const maintenanceUrl = request.nextUrl.clone();
     maintenanceUrl.pathname = "/under-construction";

@@ -1,35 +1,39 @@
 import type { Metadata } from "next";
-import Link from "next/link";
 import { BrandWordmark } from "@/components/brand-wordmark";
+import { LaunchCountdown, LaunchWaitlistForm } from "@/components/launch-waitlist";
 
 export const metadata: Metadata = {
-  title: "TeachMatchs — Coming soon",
-  description: "TeachMatchs is getting ready to connect teachers with schools across Nigeria.",
+  title: "TeachMatchs — Launching soon",
+  description: "Join the TeachMatchs launch waitlist. We launch May 1, 2027.",
 };
 
 export default function UnderConstructionPage() {
   return (
-    <main className="construction-page">
-      <header className="construction-header">
-        <Link className="brand" href="/" aria-label="TeachMatchs home">
+    <main className="launch-page">
+      <video className="launch-video" autoPlay muted loop playsInline aria-hidden="true">
+        <source src="/hero-section.mp4" type="video/mp4" />
+      </video>
+      <div className="launch-scrim" aria-hidden="true" />
+
+      <header className="launch-header">
+        <span className="launch-brand" aria-label="TeachMatchs">
           <BrandWordmark />
-        </Link>
-        <span className="construction-status" role="status"><span aria-hidden="true"></span>Website under construction</span>
+        </span>
+        <span className="launch-header-note">TEACHERS <i aria-hidden="true">×</i> SCHOOLS</span>
       </header>
-      <section className="construction-hero" aria-labelledby="construction-title">
-        <div className="construction-copy">
-          <p className="construction-eyebrow"><span aria-hidden="true">✦</span> Coming soon · Nigeria</p>
-          <h1 id="construction-title">Good teachers.<br /><span>Great schools.</span><br />One match away.</h1>
-          <p className="construction-message">We’re building TeachMatchs to help teachers find the right schools and help schools meet the teachers they need.</p>
-          <div className="construction-audience" aria-label="Made for teachers and schools"><span>For teachers</span><span>For schools</span></div>
-        </div>
-        <div className="construction-art" aria-hidden="true">
-          <div className="construction-orbit construction-orbit-one"></div><div className="construction-orbit construction-orbit-two"></div>
-          <div className="construction-card"><div className="construction-card-logo"><BrandWordmark /></div><div className="construction-card-lines"><span></span><span></span></div><div className="construction-card-banner"></div><div className="construction-card-footer"><span></span><span></span><i></i></div></div>
-          <span className="construction-spark construction-spark-one">✦</span><span className="construction-spark construction-spark-two">✳</span><div className="construction-note"><span>✦</span>A better way to meet</div>
-        </div>
+
+      <section className="launch-content" aria-labelledby="launch-title">
+        <p className="launch-kicker"><span aria-hidden="true" /> Launching May 1, 2027</p>
+        <h1 id="launch-title">Launching<br />soon.</h1>
+        <p className="launch-description">Your next classroom is on the way.</p>
+        <LaunchCountdown />
+        <LaunchWaitlistForm />
       </section>
-      <footer className="construction-footer"><BrandWordmark /><span>Where teachers meet the schools that need them.</span><span>Made for Nigeria</span></footer>
+
+      <footer className="launch-footer">
+        <span>TeachMatchs</span>
+        <span>Made for teachers and schools in Nigeria</span>
+      </footer>
     </main>
   );
 }
