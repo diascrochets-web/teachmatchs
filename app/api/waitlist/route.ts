@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { syncWaitlistContact } from "@/lib/resend/waitlist";
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -29,6 +30,13 @@ export async function POST(request: Request) {
   const { error } = await supabase.from("launch_waitlist").insert({ email });
   if (error && error.code !== "23505") {
     return NextResponse.json({ error: "We couldn’t save your email. Please try again." }, { status: 500 });
+  }
+
+  if (await syncWaitlistContact(email) === "synced") {
+    await supabase
+      .from("launch_waitlist")
+      .update({ resend_synced_at: new Date().toISOString() })
+      .eq("email", email);
   }
 
   return NextResponse.json({ ok: true }, { status: error ? 200 : 201 });
