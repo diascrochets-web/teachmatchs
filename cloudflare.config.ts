@@ -18,6 +18,7 @@ export default defineConfig({
     env: {
       ASSETS: bindings.assets(),
       RESEND_FROM_EMAIL: bindings.text("TeachMatchs Jobs <jobs@mail.teachmatchs.com>"),
+      RESEND_LAUNCH_SEGMENT_ID: bindings.text("8ca8064d-2e51-4998-b8de-0c7c00134f34"),
     },
   }),
 });
